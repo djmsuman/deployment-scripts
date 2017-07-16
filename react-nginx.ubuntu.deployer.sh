@@ -48,9 +48,8 @@ server {
 
 	server_name _;
 
-	rewrite ^/(.*)/$ $1 permanent;
 	location / {
-		try_files $uri $uri/ =404;
+		try_files $uri $uri/ /index.html =404;
 	}
 }
 EOF
