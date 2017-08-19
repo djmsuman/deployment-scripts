@@ -4,7 +4,7 @@ Scripts to deploy applications e.g. `React` or `PHP` App on **Droplet** or **AWS
 
 # Contributing
 
-Thank you for considering contributing to my deployment scripts. Feel free to clone this repository, make your changes and create a pull request.
+Thank you for considering contributing to my deployment scripts. Feel free to fork this repository, clone into your development machine, make your changes and create a pull request.
 
 # License
 
