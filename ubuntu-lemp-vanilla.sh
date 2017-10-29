@@ -1,12 +1,6 @@
 #!/bin/bash
 echo -n "Please enter database passowrd for root user: "
 read -s db_pwd
-echo -e ""
-echo -n "Please enter project name: "
-read proj_name
-echo -n "Please enter your remote Git repository url if any [Enter to skip]: "
-read git_repo
-echo -e "\nUpdating full system...\n"
 sudo apt-get update -y
 sudo apt-get upgrade -y
 sudo apt-get dist-upgrade -y
@@ -39,15 +33,14 @@ UPDATE user SET plugin='' WHERE User='root';
 GRANT USAGE ON mysql.* TO 'root'@'localhost' IDENTIFIED BY '"$db_pwd"';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
-CREATE DATABASE "${proj_name,,} CHARACTER SET utf8 COLLATE utf8_unicode_ci";
 \q;
 "
 sudo systemctl restart mysql
 echo -e "\nInsatlling phpMyAdmin..."
-curl -O https://files.phpmyadmin.net/phpMyAdmin/4.7.3/phpMyAdmin-4.7.3-english.tar.xz
-sudo tar -xJf phpMyAdmin-4.7.3-english.tar.xz
-sudo mv -f phpMyAdmin-4.7.3-english/ /usr/share/phpmyadmin/
-sudo rm -rf phpMyAdmin-4.7.3-english.tar.xz
+curl -O https://files.phpmyadmin.net/phpMyAdmin/4.7.4/phpMyAdmin-4.7.4-english.tar.xz
+sudo tar -xJf phpMyAdmin-4.7.4-english.tar.xz
+sudo mv -f phpMyAdmin-4.7.4-english/ /usr/share/phpmyadmin/
+sudo rm -rf phpMyAdmin-4.7.4-english.tar.xz
 sudo cp -f /usr/share/phpmyadmin/config.sample.inc.php /usr/share/phpmyadmin/config.inc.php
 blowfish=`openssl rand -base64 32`;
 sudo sed -i -e "s|\['blowfish_secret'\] = ''|['blowfish_secret'] = '"$blowfish"'|" /usr/share/phpmyadmin/config.inc.php
@@ -131,31 +124,5 @@ echo -e "\Installing Git Software Control Management..."
 sudo apt-get install -y git
 echo -e "\Installing Composer PHP Dependency Manager..."
 curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
-cd /var/www/html
-sudo rm -rf *
-sudo rm -rf .*
-sudo git init
-if [[ ! -z $git_repo ]]; then
-    echo -e "\Setting up a existing Laravel Application from repository..."
-    git remote add origin $git_repo
-elif
-    echo -e "\Crafting a new Laravel Application..."
-    sudo git remote add laravel https://github.com/laravel/laravel.git
-fi
-sudo git fetch origin master
-sudo git checkout master
-sudo chown -R $USER:www-data /var/www/html
-sudo chmod a+w -R bootstrap/cache storage
-composer install
-sudo cp .env.example .env
-sed -i -e 's/Laravel/'$proj_name'/g' .env
-sed -i -e 's/localhost/'${proj_name,,}'.dev/g' .env
-sed -i -e 's/DB_DATABASE=homestead/DB_DATABASE='${proj_name,,}'/g' .env
-sed -i -e 's/DB_USERNAME=homestead/DB_USERNAME=root/g' .env
-sed -i -e 's/DB_PASSWORD=secret/DB_PASSWORD='$db_pwd'/g' .env
-php artisan key:generate
-echo -e "\Reconfiguring NGINX server block to serve Laravel..."
-sed -i -e 's/root \/var\/www\/html;/root \/var\/www\/html\/public;/' /etc/nginx/sites-available/default
-sed -i -e 's/try_files $uri $uri\/ =404;/try_files $uri $uri\/ \/index.php?$query_string;/' /etc/nginx/sites-available/default
 sudo chown -R $USER:www-data /var/www/html
 sudo systemctl restart nginx
